@@ -30,7 +30,8 @@ namespace Info.Models
         public bool Active { get; set; }
 
         [Required]
-        [Display(Name = "Czy wiświetlać?")]
+        [Display(Name = "Czy wyświetlać?")]
+        [DefaultValue(true)]
         public bool Display { get; set; }
 
         public virtual List<Text>? Texts { get; set; }
