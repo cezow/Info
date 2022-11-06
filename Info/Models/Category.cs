@@ -15,7 +15,7 @@ namespace Info.Models
         public string? Name { get; set; }
 
         [Required(ErrorMessage = "Proszę podać opis kategorii")]
-        [Display(Name = "Nazwa kategorii:")]
+        [Display(Name = "Opis kategorii:")]
         [MaxLength(255, ErrorMessage = "Opis kategorii nie może być dłuższa niż 255 znaków")]
         public string? Description { get; set; }
 
