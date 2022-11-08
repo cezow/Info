@@ -7,9 +7,12 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Info.Data;
 using Info.Models;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Info.Controllers
 {
+    [Authorize(Roles = "admin, author")]
     public class CategoriesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -43,7 +46,9 @@ namespace Info.Controllers
             return View(category);
         }
 
+
         // GET: Categories/Create
+        [Authorize(Roles = "admin")]
         public IActionResult Create()
         {
             return View();
@@ -52,6 +57,7 @@ namespace Info.Controllers
         // POST: Categories/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [Authorize(Roles = "admin, author")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("CategoryId,Name,Description,Icon,Active,Display")] Category category)
@@ -74,6 +80,7 @@ namespace Info.Controllers
         }
 
         // GET: Categories/Edit/5
+        [Authorize(Roles = "admin, author")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null || _context.Categories == null)
@@ -92,6 +99,7 @@ namespace Info.Controllers
         // POST: Categories/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [Authorize(Roles = "admin, author")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("CategoryId,Name,Description,Icon,Active,Display")] Category category)
@@ -125,7 +133,8 @@ namespace Info.Controllers
         }
 
         // GET: Categories/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        [Authorize(Roles = "admin, author")]
+        public async Task<IActionResult> Delete(int id)
         {
             if (id == null || _context.Categories == null)
             {
@@ -139,10 +148,16 @@ namespace Info.Controllers
                 return NotFound();
             }
 
+            if (TextsInCategory(id))
+            {
+                ViewBag.DeleteMessage = "Nie moża usunąć wybranej kategorii, gdyż posiada przypisane teksty";
+            }
+
             return View(category);
         }
 
         // POST: Categories/Delete/5
+        [Authorize(Roles = "admin, author")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -170,5 +185,11 @@ namespace Info.Controllers
         {
             return (_context.Categories?.Any(e => e.Name == name)).GetValueOrDefault();
         }
+
+        private bool TextsInCategory(int id)
+        {
+            return (_context.Texts?.Any(t => t.CategoryId == id)).GetValueOrDefault();
+        }
+
     }
 }
