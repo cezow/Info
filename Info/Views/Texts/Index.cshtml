@@ -1,0 +1,32 @@
+﻿@model IEnumerable<Info.Models.Text>
+
+@{
+    ViewData["Title"] = "Lista tekstów";
+}
+
+<div class="container">
+    <div class="row">
+        <!-- Wyszukiwarka -->
+        <div class="d-none d-md-block col-md-12 col-xl-3">
+            <div class="card mt-2 shadow-sm">
+                <div class="card-body">
+                    Wyszukiwarka
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-xl-9">
+    <div class="card my-2">
+        <div class="card-header">
+            <h4 class="text-primary oswald">Tytuł tekstu</h4>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <img src="~/img/mini/1.jpg" class="img-fluid" alt="..." />
+            </div>
+            <div class="col-md-8"></div>
+        </div>
+    </div>
+</div>
