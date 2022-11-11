@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Info.Data;
 using Info.Models;
+using Info.Models.ViewModels;
+
+
 
 namespace Info.Controllers
 {
@@ -20,10 +23,27 @@ namespace Info.Controllers
         }
 
         // GET: Texts
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int PageNumber = 1)
         {
-            var applicationDbContext = _context.Texts.Include(t => t.Category).Include(t => t.User);
-            return View(await applicationDbContext.ToListAsync());
+            TextsViewModel textsViewModel = new();
+            textsViewModel.TextsView = new TextsView();
+            textsViewModel.TextsView.TextCount = _context.Texts
+                .Where(t => t.Active == true)
+                .Count();
+            textsViewModel.TextsView.PageNumber = PageNumber;
+
+            textsViewModel.Texts = (IEnumerable<Text>?)await _context.Texts
+            .Include(t => t.Category)
+            .Include(t => t.User)
+            .Where(t => t.Active == true)
+            .OrderByDescending(t => t.AddedDate)
+            .Skip((PageNumber - 1) * textsViewModel.TextsView.PageSize)
+            .Take(textsViewModel.TextsView.PageSize)
+            .ToListAsync();
+
+            return View(textsViewModel);
+
+
         }
         public async Task<IActionResult> List()
         {
