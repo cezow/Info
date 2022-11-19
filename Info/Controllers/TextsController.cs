@@ -23,14 +23,18 @@ namespace Info.Controllers
         }
 
         // GET: Texts
-        public async Task<IActionResult> Index(int PageNumber = 1)
+        public async Task<IActionResult> Index(string Fraza, string Autor, int? Kategoria, int PageNumber = 1)
         {
+
             TextsViewModel textsViewModel = new();
             textsViewModel.TextsView = new TextsView();
             textsViewModel.TextsView.TextCount = _context.Texts
                 .Where(t => t.Active == true)
                 .Count();
             textsViewModel.TextsView.PageNumber = PageNumber;
+            textsViewModel.TextsView.Author = Autor;
+            textsViewModel.TextsView.Phrase = Fraza;
+            textsViewModel.TextsView.Category = Kategoria;
 
             textsViewModel.Texts = (IEnumerable<Text>?)await _context.Texts
             .Include(t => t.Category)
@@ -40,6 +44,17 @@ namespace Info.Controllers
             .Skip((PageNumber - 1) * textsViewModel.TextsView.PageSize)
             .Take(textsViewModel.TextsView.PageSize)
             .ToListAsync();
+
+
+            ViewData["Category"] = new SelectList(_context.Categories
+                .Where(c => c.Active == true),
+                 "CategoryId", "Name", Kategoria);
+
+            ViewData["Author"] = new SelectList(_context.Texts
+                .Include(u => u.User) // inner join
+                .Select(u => u.User)
+                .Distinct(), // bez powtorzen nazw autora
+                "Id", "FullName", Autor);
 
             return View(textsViewModel);
 
