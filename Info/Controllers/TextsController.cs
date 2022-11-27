@@ -8,42 +8,62 @@ using Microsoft.EntityFrameworkCore;
 using Info.Data;
 using Info.Models;
 using Info.Models.ViewModels;
-
-
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using Info.Infrastructure;
 
 namespace Info.Controllers
 {
     public class TextsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private IWebHostEnvironment _hostEnvironment;
 
-        public TextsController(ApplicationDbContext context)
+        public TextsController(ApplicationDbContext context, IWebHostEnvironment environment)
         {
             _context = context;
+            _hostEnvironment = environment;
         }
 
         // GET: Texts
         public async Task<IActionResult> Index(string Fraza, string Autor, int? Kategoria, int PageNumber = 1)
         {
+            var SelectedTexts = _context.Texts
+                .Include(t => t.Category)
+                .Include(t => t.User)
+                .Where(t => t.Active == true)
+                .OrderByDescending(t => t.AddedDate);
+
+
+            if (Kategoria != null)
+            {
+                SelectedTexts = (IOrderedQueryable<Text>)SelectedTexts
+                .Where(r => r.Category.CategoryId == Kategoria);
+            }
+            if (!String.IsNullOrEmpty(Autor))
+            {
+                SelectedTexts = (IOrderedQueryable<Text>)SelectedTexts
+                .Where(r => r.User.Id == Autor);
+            }
+            if (!String.IsNullOrEmpty(Fraza))
+            {
+                SelectedTexts = (IOrderedQueryable<Text>)SelectedTexts
+                .Where(r => r.Content.Contains(Fraza));
+            }
 
             TextsViewModel textsViewModel = new();
             textsViewModel.TextsView = new TextsView();
-            textsViewModel.TextsView.TextCount = _context.Texts
-                .Where(t => t.Active == true)
-                .Count();
+            textsViewModel.TextsView.TextCount = SelectedTexts.Count();
             textsViewModel.TextsView.PageNumber = PageNumber;
             textsViewModel.TextsView.Author = Autor;
             textsViewModel.TextsView.Phrase = Fraza;
             textsViewModel.TextsView.Category = Kategoria;
 
-            textsViewModel.Texts = (IEnumerable<Text>?)await _context.Texts
-            .Include(t => t.Category)
-            .Include(t => t.User)
-            .Where(t => t.Active == true)
-            .OrderByDescending(t => t.AddedDate)
-            .Skip((PageNumber - 1) * textsViewModel.TextsView.PageSize)
-            .Take(textsViewModel.TextsView.PageSize)
-            .ToListAsync();
+            textsViewModel.Texts = (IEnumerable<Text>?)await SelectedTexts
+                .Skip((PageNumber - 1) * textsViewModel.TextsView.PageSize)
+                .Take(textsViewModel.TextsView.PageSize)
+                .ToListAsync();
 
 
             ViewData["Category"] = new SelectList(_context.Categories
@@ -60,6 +80,7 @@ namespace Info.Controllers
 
 
         }
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> List()
         {
             var applicationDbContext = _context.Texts.Include(t => t.Category).Include(t => t.User);
@@ -89,8 +110,7 @@ namespace Info.Controllers
         // GET: Texts/Create
         public IActionResult Create()
         {
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Description");
-            ViewData["Id"] = new SelectList(_context.AppUsers, "Id", "Id");
+            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name");
             return View();
         }
 
@@ -99,15 +119,36 @@ namespace Info.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("TextId,Title,Summary,Keywords,Content,Graphic,Active,AddedDate,CategoryId,Id")] Text text)
+        public async Task<IActionResult> Create([Bind("TextId,Title,Summary,Keywords,Content,Active,AddedDate,CategoryId")] Text text, IFormFile picture)
         {
             if (ModelState.IsValid)
             {
+                // odczytanie id uzytkownika
+                text.Id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                text.AddedDate = DateTime.Now;
+                
+                // zapisnie obrazka i przeskalowanie wersji
+                if (picture != null && picture.Length > 0)
+                {
+                    ImageFileUpload imageFileResult = new(_hostEnvironment);
+                    FileSendResult fileSendResult = imageFileResult.SendFile(picture, "img", 600);
+                    if (fileSendResult.Success)
+                    {
+                        text.Graphic = fileSendResult.Name;
+                    }
+                    else
+                    {
+                        ViewBag.ErrorMessage = "Wybrany plik nie jest obrazkiem!";
+                        ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name", text.CategoryId);
+                        return View(text);
+                    }
+                }
+
                 _context.Add(text);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Description", text.CategoryId);
+            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name", text.CategoryId);
             ViewData["Id"] = new SelectList(_context.AppUsers, "Id", "Id", text.Id);
             return View(text);
         }

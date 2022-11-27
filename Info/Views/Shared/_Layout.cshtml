@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Info</title>
     <link rel="stylesheet" href="~/css/bootstrap_colors.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs5/dt-1.13.1/datatables.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Info.styles.css" asp-append-version="true" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,17 +37,21 @@
                             if (User.IsInRole("admin") || User.IsInRole("author"))
                             {
                                 <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle text-dark" href="#" role="button"
-                                   data-bs-toggle="dropdown" aria-expanded="false">
+                                    <a class="nav-link text-dark dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         Administracja
                                     </a>
                                     <ul class="dropdown-menu">
-                                        <li class="nav-item">
-                                            <a class="dropdown-item nav-link text-dark" asp-area=""
-                                       asp-controller="Categories" asp-action="Index">Kategorie</a>
-                                        </li>
+                                        <li><a class="nav-link text-dark" asp-area="" asp-controller="Categories" asp-action="Index">Kategorie</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        @if (User.IsInRole("admin"))
+                                        {
+                                            <li><a class="nav-link text-dark" asp-area="" asp-controller="Texts" asp-action="List">Lista tekstów</a></li>
+                                        }
+                                        @if (User.IsInRole("author"))
+                                        {
+                                            <li><a class="nav-link text-dark" asp-area="" asp-controller="Texts" asp-action="Create">Nowy tekst</a></li>
+                                        }
                                     </ul>
-
                                 </li>
                             }
                         }
