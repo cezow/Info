@@ -166,9 +166,21 @@ namespace Info.Controllers
             {
                 return NotFound();
             }
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Description", text.CategoryId);
+
             ViewData["Id"] = new SelectList(_context.AppUsers, "Id", "Id", text.Id);
             return View(text);
+
+            if (string.Compare(User.FindFirstValue(ClaimTypes.NameIdentifier), text.Id) == 0 || User.IsInRole("admin"))
+            {
+             ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name", text.CategoryId);
+             ViewData["Author"] = text.Id;
+
+            }
+            else
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
         }
 
         // POST: Texts/Edit/5
@@ -176,15 +188,33 @@ namespace Info.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("TextId,Title,Summary,Keywords,Content,Graphic,Active,AddedDate,CategoryId,Id")] Text text)
+        public async Task<IActionResult> Edit(int textid, [Bind("TextId,Title,Summary,Keywords,Content,Graphic,Active,AddedDate,CategoryId,Id")] Text text, IFormFile picture)
         {
-            if (id != text.TextId)
+            if (textid != text.TextId)
             {
                 return NotFound();
             }
 
             if (ModelState.IsValid)
             {
+                // przeskalowanie obracka i przeskalowanej kopii
+                if (picture != null && picture.Length > 0)
+                {
+                    ImageFileUpload imageFileResult = new(_hostEnvironment);
+                    FileSendResult fileSendResult = imageFileResult.SendFile(picture, "img", 600);
+                    if (fileSendResult.Success)
+                    {
+                        text.Graphic = fileSendResult.Name;
+                    }
+                    else
+                    {
+                        ViewBag.ErrorMessage = "Wybrany plik nie jest obrazkiem!";
+                        ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name", text.CategoryId);
+                        ViewData["Author"] = text.Id;
+                        return View(text);
+                    }
+                }
+
                 try
                 {
                     _context.Update(text);
@@ -203,8 +233,8 @@ namespace Info.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Description", text.CategoryId);
-            ViewData["Id"] = new SelectList(_context.AppUsers, "Id", "Id", text.Id);
+            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name", text.CategoryId);
+            ViewData["Author"] = text.Id;
             return View(text);
         }
 
