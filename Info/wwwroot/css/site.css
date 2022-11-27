@@ -27,3 +27,7 @@ body {
 .interspace div {
     margin-bottom: 1em;
 }
+
+.ck-editor__editable {
+    min-height: 400px !important;
+}
