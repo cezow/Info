@@ -78,9 +78,18 @@
                     @Html.DisplayFor(modelItem => item.User.FullName)
                 </td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.TextId">Edycja</a> |
-                    <a asp-action="Details" asp-route-id="@item.TextId">Szczegóły</a> |
-                    <a asp-action="Delete" asp-route-id="@item.TextId">Usuwanie</a>
+                    <a class="btn btn-outline-primary rounded-circle my-1" title="Szczegóły" asp-action="Details" asp-route-id="@item.TextId">
+                        <i class="bi-eye" aria-label="Szczegóły kategorii"></i>
+                    </a>
+                    <a class="btn btn-outline-warning rounded-circle my-1" title="Edycja" asp-action="Edit" asp-route-id="@item.TextId">
+                        <i class="bi-pen-fill" aria-label="Edycja kategorii"></i>
+                    </a>
+                    <a class="btn btn-outline-danger rounded-circle my-1" title="Usuwanie" asp-action="Delete" asp-route-id="@item.TextId">
+                        <i class="bi-trash" aria-label="Usuwanie kategorii"></i>
+                    </a>
+                    <a class="btn btn-outline-info rounded-circle my-1" title="Opinie" asp-action="Index" asp-controller="Opinions" asp-route-id="@item.TextId">
+                        <i class="bi-chat-left-text" aria-label="Opinie o tekście"></i>
+                    </a>
                 </td>
             </tr>
         }

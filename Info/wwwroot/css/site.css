@@ -31,3 +31,7 @@ body {
 .ck-editor__editable {
     min-height: 400px !important;
 }
+
+.smaller {
+    font-size: 0.875em;
+}

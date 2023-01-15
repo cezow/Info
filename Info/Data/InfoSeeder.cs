@@ -2,14 +2,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Info.Models;
-using static Humanizer.In;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.SignalR;
 using static System.Net.Mime.MediaTypeNames;
 using System.Numerics;
-using Humanizer.Localisation;
-using Humanizer;
 using System.Threading;
 using System;
 using System.Runtime.Intrinsics.Arm;

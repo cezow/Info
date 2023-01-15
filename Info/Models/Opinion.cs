@@ -33,7 +33,6 @@ namespace Info.Models
         public string? Id { get; set; }
         [ForeignKey("Id")]
         public virtual AppUser? User { get; set; }
-
     }
 
     public enum TypeOfGrade

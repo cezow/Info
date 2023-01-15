@@ -33,6 +33,11 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Texts" asp-action="Index">Teksty</a>
                         </li>
+                        <li>
+                            <a class=" nav-link text-dark" asp-area="" asp-controller="Opinions"
+                               asp-action="Index">Recenzje</a>
+                        </li>
+
                         @{
                             if (User.IsInRole("admin") || User.IsInRole("author"))
                             {
